@@ -1,0 +1,37 @@
+// ES6 +
+// https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise
+
+// log.info('test_promise.js')
+// JS中为什么会有回调函数
+// JS 为校验表单而生，目的就是为了操纵DOM获取数据执行校验。
+// UI语言造成界面冻结是大忌，故JS操作大多是异步的。
+/*
+异步操作常见语法
+在DOM上注册监听
+例1：document.getElementById('start').addEventListener('click', start, fasle);
+例2：$('#start').on('click', start);
+填空：指定事件发生后的处理函数
+例1： $.ajax('http://baidu.com', {
+  success: function (res) {
+    // 回调函数体
+  }
+})
+例2：在页面加载完毕后执行
+$(function () {
+  // 回调函数体
+})
+*/
+/*
+浏览器中的JavaScript
+  异步操作以事件为主
+  回调主要出现在AJAX中。
+Node.js中对异步嘚依赖进一步加剧
+  File API
+*/
+/*
+异步回调函数的问题
+1. 嵌套层次深的情况下，会难以维护
+2. 无法正常地使用return和throw
+3. 没有办法使用try {} catch () {}, 因为调用函数和异步回调函数并不使用同一个栈。
+4. 多个回调之间难以建立联系。一个回调一旦被启动，我们（主调函数）就再也无法对其进行干预了。不得不使用在外层作用域定义变量交给内层作用于使用的情况，风险：这些变量可能被其他代码无意中修改，从而导致错误。
+*/

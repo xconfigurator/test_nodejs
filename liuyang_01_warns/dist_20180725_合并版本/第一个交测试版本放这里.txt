@@ -1,0 +1,178 @@
+注：这里只写对genieacs有修改的内容
+
+
+######################################################################################
+#hbfec_warns_201808010908_增加socket.io
+修改文件列表：
+db.js
+
+修改下面方法的签名，增加传递socket参数
+修改前：
+// add by liuyang 20180725
+mergeWarnInfo = function (deviceId) {
+  devicesCollection.find({
+    '_id': deviceId
+  }).toArray(function (err, res) {
+	if (!err) {
+      var deviceInfo = res[0];
+	  warnsMerge.processOneDevice(deviceInfo);
+	}
+  });
+}
+修改后：
+// add by liuyang 20180725
+mergeWarnInfo = function (deviceId, socketIO) {
+  devicesCollection.find({
+    '_id': deviceId
+  }).toArray(function (err, res) {
+	if (!err) {
+      var deviceInfo = res[0];
+	  warnsMerge.processOneDevice(deviceInfo, socketIO);
+	}
+  });
+}
+
+
+######################################################################################
+#hbfec_warns_201807281443_带首页服务
+修改文件列表：
+nbi.js
+
+在告警分支中增加如下信息
+
+	// 首页告警
+      if (moduleName === 'dashboard' && operationName === 'piechart') { // 首页饼图(按设备分)
+        console.log('#debug enter /warns/dashboard/piechart')
+        warnsService.getDashboardPieChartData(request, response)
+      }
+      if (moduleName === 'dashboard' && operationName === 'barchart') { // 首页柱状图（按告警等级分）
+        console.log('#debug enter /warns/dashboard/barchart')
+        warnsService.getDashboradBarChartData(request, response)
+      }
+
+
+	  
+	  
+######################################################################################
+#hbfec_warns_201807252030_无首页服务
+修改文件列表：
+nbi.js
+db.js
+
+nbi.js增加如下内容法完成适配
+// part1
+////////////////////////////////////////////////////////////////////
+// ADD BY LIUYANG 2018/7/26 BEGIN
+var warnsService = require('./hbfec_warns/warns_service')
+var qs = require('qs')
+var WARNS_REGEX = /^\/warns\/([a-zA-Z0-9\%\!\*\'\(\)\;\:\@\&\=\+\$\,\?\#\[\]\-\_\.\~]+)\/?\/([a-zA-Z0-9\%\!\*\'\(\)\;\:\@\&\=\+\$\,\?\#\[\]\-\_\.\~]+)\/?$/;
+// ADD BY LIUYANG 2018/7/26 END
+////////////////////////////////////////////////////////////////////
+
+// part2
+else if (WARNS_REGEX.test(urlParts.pathname)) { // 告警服务 add by liuyang 2018/7/26 
+      console.log('#debug urlParts.pathname = ' + urlParts.pathname)
+      let moduleName = querystring.unescape(WARNS_REGEX.exec(urlParts.pathname)[1]) // current | histories | dashborad
+      let operationName = querystring.unescape(WARNS_REGEX.exec(urlParts.pathname)[2]) // 模块下的操作名称
+      // console.log('#trace moduleName = ' + moduleName)
+      // console.log('#trace operationName = ' + operationName)
+      // console.log('#trace flag = ' + (moduleName === 'dashboard' && operationName === 'barchart'))
+      
+      // 当前告警
+      if (moduleName === 'current' && operationName === 'query') { // 查询
+        console.log('#debug enter /warns/current/query')
+		let bodyPased = JSON.parse(body)
+		
+		let currentPage = parseInt(bodyPased.currentPage)
+        let pageSize = parseInt(bodyPased.pageSize)
+        // let deviceId = bodyPased['deviceId[2]'] // qs.stringify 使用多维度的选择框需要时使用req.body.deviceId[2]来接收
+        let deviceId = bodyPased.deviceId[2] // JSON.stringify
+		let warnLevel = bodyPased.warnLevel
+        
+        // console.log('body = ' + util.inspect(req.body))
+        console.log('currentPage = ' + currentPage)
+        console.log('pageSize = ' + pageSize)
+        console.log('deviceId = ' + deviceId)
+        console.log('warnLevel = ' + warnLevel)
+        
+        warnsService.currentWarnsQuery(request, response, currentPage, pageSize, deviceId, warnLevel)
+      }
+      if (moduleName === 'current' && operationName === 'eliminate') { // 消警
+        console.log('#debug enter /warns/current/eliminate')
+		let bodyPased = JSON.parse(body)
+				
+        // let warnItem = qs.parse(bodyPased.warnItem)
+		let warnItem = JSON.parse(bodyPased.warnItem)
+        // console.log('warnItem = ' + util.inspect(warnItem))
+		
+        warnsService.currentWarnsEliminate(request, response, warnItem) // 注意warnItem已经是warns_service.js处理过的二维化的告警记录，包含deviceId		
+	  }
+      if (moduleName === 'current' && operationName === 'confirm') { // 确认
+        console.log('#debug enter /warns/current/confirm')
+      }
+      if (moduleName === 'current' && operationName === 'ignore') { // 忽略
+        console.log('#debug enter /warns/current/ignore')
+		let bodyPased = JSON.parse(body)
+		
+        // let warnItem = qs.parse(bodyPased.warnItem)
+		let warnItem = JSON.parse(bodyPased.warnItem)
+        // console.log('warnItem = ' + util.inspect(warnItem))
+        
+        warnsService.currentWarnsIgnore(request, response, warnItem)
+	  }
+      
+      // 历史告警
+      if (moduleName === 'histories' && operationName === 'query') { // 查询
+        console.log('#debug enter /warns/histories/query')
+		let bodyPased = JSON.parse(body)
+		
+        let currentPage = parseInt(bodyPased.currentPage)
+        let pageSize = parseInt(bodyPased.pageSize)
+        // let deviceId = bodyPased['deviceId[2]'] // 使用多维度的选择框需要时使用req.body.deviceId[2]来接收
+        let deviceId = bodyPased.deviceId[2]
+		let warnLevel = bodyPased.warnLevel
+        let timeFrom = bodyPased.timeFrom
+        let timeTo = bodyPased.timeTo
+        
+        // console.log('body = ' + util.inspect(req.body))
+        console.log('currentPage = ' + currentPage)
+        console.log('pageSize = ' + pageSize)
+        console.log('deviceId = ' + deviceId)
+        console.log('warnLevel = ' + warnLevel)
+		
+        warnsService.historiesWarnsQuery(request, response, currentPage, pageSize, deviceId, warnLevel, timeFrom, timeTo) // 注意warnItem已经是warns_service.js处理过的二维化的告警记录，包含deviceId
+      }
+      
+      // 告警设置
+      
+      // 告警屏蔽
+      
+      // 首页告警
+      if (moduleName === 'dashboard' && operationName === 'piechart') { // 首页饼图(按设备分)
+        console.log('#debug enter /warns/dashboard/piechart')
+      }
+      if (moduleName === 'dashboard' && operationName === 'barchart') { // 首页柱状图（按告警等级分）
+        console.log('#debug enter /warns/dashboard/barchart')
+      }
+	  
+    }
+	
+	
+db.js增加如下内容完成适配
+// part1
+// add by liuyang 20180725 begin
+var warnsMerge = require('./hbfec_warns/warns_merge')
+// add by liuyang 20180725 end
+
+// part2
+// add by liuyang 20180725
+mergeWarnInfo = function (deviceId) {
+  devicesCollection.find({
+    '_id': deviceId
+  }).toArray(function (err, res) {
+	if (!err) {
+      var deviceInfo = res[0];
+	  warnsMerge.processOneDevice(deviceInfo);
+	}
+  });
+}

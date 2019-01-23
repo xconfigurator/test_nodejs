@@ -1,0 +1,3 @@
+// 待使用log4js来实现
+// 工程结构参考 log4js-example-master
+// 参考工程： https://github.com/log4js-node/log4js-example
