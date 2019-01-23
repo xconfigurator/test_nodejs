@@ -11,6 +11,8 @@ log.debug(downDevicesSet.includes())
 
 log.info(ID1.substr(ID1.indexOf('-') + 1, 4))
 
+log.info("hello, GitHub")
+
 /*
 let str = '宁波3车头:FFFFFF-0301-FFFFFF303233311C4D0230B8D812679111'
 // let str = 'FFFFFF-0301-FFFFFF303233311C4D0230B8D812679111'
